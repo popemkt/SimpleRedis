@@ -8,7 +8,7 @@ server.Start();
 while (true)
 {
     var socket = server.AcceptSocket(); // wait for client
-    Task.Run(() => HandleClient(socket));
+    await Task.Run(() => HandleClient(socket));
     async Task HandleClient(Socket socket)
     {
         var buffer = new byte[1024];
