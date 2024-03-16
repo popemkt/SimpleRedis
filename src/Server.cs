@@ -35,12 +35,12 @@ async Task HandleClient(Socket socket)
                     return new Response { Data = redisCommand.Arguments[0] };
                 case "set":
                     TimeSpan? expiration = default;
-                    if (redisCommand.Arguments.Length > 3)
-                        if (redisCommand.Arguments[3] is RedisBulkString bulkString &&
-                            bulkString.Value.Equals("ex", StringComparison.InvariantCultureIgnoreCase))
+                    if (redisCommand.Arguments.Length > 2)
+                        if (redisCommand.Arguments[2] is RedisBulkString bulkString &&
+                            bulkString.Value.Equals("px", StringComparison.InvariantCultureIgnoreCase))
                             expiration =
                                 TimeSpan.FromMilliseconds(
-                                    int.Parse((redisCommand.Arguments[4] as RedisBulkString).Value));
+                                    int.Parse((redisCommand.Arguments[3] as RedisBulkString).Value));
 
                     internalCache.Set((redisCommand.Arguments[0] as RedisBulkString).Value,
                         redisCommand.Arguments[1], expiration);
