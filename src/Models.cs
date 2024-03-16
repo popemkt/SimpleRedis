@@ -9,7 +9,7 @@ public abstract class RedisData
 
 public static class RedisDataExtensions
 {
-    public static string ToResponse(this RedisData data)
+    public static string ToResponse(this RedisData? data)
     {
         return $"{data.Format()}\r\n";
     }
@@ -33,6 +33,7 @@ public class RedisBulkString : RedisData<string>
     {
         return $"${Value.Length}\r\n{Value}";
     }
+    public static RedisBulkString Null { get; } = new RedisBulkString { Value = "-1"};
 }
 
 public class RedisArray : RedisData<RedisData[]>

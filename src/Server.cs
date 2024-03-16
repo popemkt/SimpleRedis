@@ -34,14 +34,22 @@ async Task HandleClient(Socket socket)
                 case "echo":
                     return new Response { Data = redisCommand.Arguments[0] };
                 case "set":
+                    TimeSpan? expiration = default;
+                    if (redisCommand.Arguments.Length > 3)
+                        if (redisCommand.Arguments[3] is RedisBulkString bulkString &&
+                            bulkString.Value.Equals("ex", StringComparison.InvariantCultureIgnoreCase))
+                            expiration =
+                                TimeSpan.FromMilliseconds(
+                                    int.Parse((redisCommand.Arguments[4] as RedisBulkString).Value));
+
                     internalCache.Set((redisCommand.Arguments[0] as RedisBulkString).Value,
-                        redisCommand.Arguments[1]);
+                        redisCommand.Arguments[1], expiration);
                     return new Response { Data = new RedisSimpleString { Value = "OK" } };
                 case "get":
                     var value = internalCache.Get((redisCommand.Arguments[0] as RedisBulkString).Value);
                     return new Response
                     {
-                        Data = value
+                        Data = value ?? RedisBulkString.Null
                     };
                 default:
                     throw new Exception($"Unsupported command: {redisCommand.Name}");
@@ -56,5 +64,5 @@ async Task HandleClient(Socket socket)
 
 public class Response
 {
-    public RedisData Data { get; set; }
+    public RedisData? Data { get; set; }
 }

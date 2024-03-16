@@ -1,14 +1,25 @@
-using System.Collections.Concurrent;
+using System.Runtime.Caching;
 
 namespace codecrafters_redis;
 
 public class Cache
 {
-    private ConcurrentDictionary<string, RedisData> _cache = new();
-    
-    public void Set(string key, RedisData data)
-    =>
-        _cache[key] = data;
+    private readonly Lazy<MemoryCache> _cache = new(() => MemoryCache.Default);
 
-    public RedisData Get(string key) => _cache[key];
+    public void Set(string key, RedisData data, TimeSpan? expiration = null)
+    {
+        var options = new CacheItemPolicy();
+        if (expiration != null)
+            options.SlidingExpiration = expiration.Value;
+
+        _cache.Value.Set(key, data, options);
+    }
+
+    public RedisData? Get(string key)
+    {
+        if (_cache.Value.Contains(key))
+           return _cache.Value.Get(key) as RedisData;
+        
+        return null;
+    }
 }
