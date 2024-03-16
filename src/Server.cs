@@ -1,18 +1,12 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using codecrafters_redis;
 
 // Uncomment this block to pass the first stage
 TcpListener server = new TcpListener(IPAddress.Any, 6379);
+var internalCache = new Cache();
 server.Start();
-var testString = Encoding.UTF8.GetBytes("this is a sttrin");
-using (var memStream = new MemoryStream(testString))
-{
-    using (var reader = new StreamReader(memStream, Encoding.UTF8))
-    {
-        var a = reader.ReadLine();
-    }
-}
 
 while (true)
 {
@@ -39,6 +33,16 @@ async Task HandleClient(Socket socket)
                     return new Response { Data = new RedisSimpleString { Value = "PONG" } };
                 case "echo":
                     return new Response { Data = redisCommand.Arguments[0] };
+                case "set":
+                    internalCache.Set((redisCommand.Arguments[0] as RedisBulkString).Value,
+                        redisCommand.Arguments[1]);
+                    return new Response { Data = new RedisSimpleString { Value = "OK" } };
+                case "get":
+                    var value = internalCache.Get((redisCommand.Arguments[0] as RedisBulkString).Value);
+                    return new Response
+                    {
+                        Data = value
+                    };
                 default:
                     throw new Exception($"Unsupported command: {redisCommand.Name}");
             }
