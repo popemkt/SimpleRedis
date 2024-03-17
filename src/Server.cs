@@ -21,6 +21,7 @@ async Task HandleClient(Socket socket)
     {
         var bytes = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), SocketFlags.None);
         var parser = new RedisRespParser(new MemoryStream(buffer));
+        if (bytes == 0) continue;
         var command = parser.ParseCommand();
 
         var response = HandleCommand(command);
@@ -35,12 +36,12 @@ async Task HandleClient(Socket socket)
                     return new Response { Data = redisCommand.Arguments[0] };
                 case "set":
                     TimeSpan? expiration = default;
-                    if (redisCommand.Arguments.Length > 2)
-                        if (redisCommand.Arguments[2] is RedisBulkString bulkString &&
-                            bulkString.Value.Equals("px", StringComparison.InvariantCultureIgnoreCase))
-                            expiration =
-                                TimeSpan.FromMilliseconds(
-                                    int.Parse((redisCommand.Arguments[3] as RedisBulkString).Value));
+                    if (redisCommand.Arguments.Length > 2
+                        && redisCommand.Arguments[2] is RedisBulkString bulkString
+                        && bulkString.Value.Equals("px", StringComparison.InvariantCultureIgnoreCase))
+                        expiration =
+                            TimeSpan.FromMilliseconds(
+                                int.Parse((redisCommand.Arguments[3] as RedisBulkString).Value));
 
                     internalCache.Set((redisCommand.Arguments[0] as RedisBulkString).Value,
                         redisCommand.Arguments[1], expiration);
@@ -54,8 +55,6 @@ async Task HandleClient(Socket socket)
                 default:
                     throw new Exception($"Unsupported command: {redisCommand.Name}");
             }
-
-            throw new NotImplementedException();
         }
 
         await socket.SendAsync(Encoding.UTF8.GetBytes(response.Data.ToResponse()), SocketFlags.None);
