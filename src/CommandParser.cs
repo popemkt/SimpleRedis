@@ -1,5 +1,7 @@
 using System.Text;
 
+namespace codecrafters_redis;
+
 public class RedisRespParser
 {
     private const char SimpleStringChar = '+';
@@ -68,7 +70,7 @@ public class RedisRespParser
     public RedisCommand ParseCommand()
     {
         _reader.Read();
-        RedisArray array = ParseArray() as RedisArray;
+        RedisArray array = ParseArray();
 
         if (array == null || array.Value.Length == 0)
             return null;

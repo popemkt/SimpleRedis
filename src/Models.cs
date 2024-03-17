@@ -1,3 +1,5 @@
+namespace codecrafters_redis;
+
 public abstract class RedisData<T> : RedisData
 {
     public abstract T Value { get; set; }
@@ -33,7 +35,15 @@ public class RedisBulkString : RedisData<string>
     {
         return $"${Value.Length}\r\n{Value}";
     }
-    public static RedisBulkString Null { get; } = new RedisBulkString { Value = "-1"};
+    public static RedisBulkString Null { get; } = new NullBulkString();
+
+    private sealed class NullBulkString : RedisBulkString
+    {
+        public override string Format()
+        {
+            return "$-1";
+        }
+    }
 }
 
 public class RedisArray : RedisData<RedisData[]>
