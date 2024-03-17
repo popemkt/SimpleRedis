@@ -39,9 +39,8 @@ async Task HandleClient(Socket socket)
                     if (redisCommand.Arguments.Length > 2
                         && redisCommand.Arguments[2] is RedisBulkString bulkString
                         && bulkString.Value.Equals("px", StringComparison.InvariantCultureIgnoreCase))
-                        expiration =
-                            TimeSpan.FromMilliseconds(
-                                int.Parse((redisCommand.Arguments[3] as RedisBulkString).Value));
+                        expiration = TimeSpan.FromMilliseconds(
+                            int.Parse((redisCommand.Arguments[3] as RedisBulkString).Value));
 
                     internalCache.Set((redisCommand.Arguments[0] as RedisBulkString).Value,
                         redisCommand.Arguments[1], expiration);
